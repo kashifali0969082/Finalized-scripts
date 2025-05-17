@@ -58,55 +58,109 @@ async function Registration() {
   }
 }
 
+// async function LevelsScripts() {
+//   try {
+//     const cursor = RegistrationData.find(
+//       {},
+//       { userAddress: 1, _id: 0 }
+//     ).lean().exec();; // Fetch only `userAddress`
+//     for await (let doc of cursor) {
+//       console.log("User Address:", doc.userAddress);
+//       const userData = await Sonic.users(doc.userAddress);
+//       const virtuallUpline = await Sonic.virtualUplineOf(doc.userAddress);
+//       const virtuallIds = await Sonic.virtualIds(doc.userAddress);
+//       const isactive = await Sonic.isActive(doc.userAddress);
+//       const stories = await Sonic.getStories(doc.userAddress);
+//       const VirtualDirect = await Sonic.totalVirtualDirect(doc.userAddress);
+
+//       console.log("user data = ", stories);
+//       let virtualDirectsArr = [];
+
+//       for (let i = 0; i < Number(VirtualDirect); i++) {
+//         const data = await Sonic.virtualDirectsOf(doc.userAddress, i);
+//         console.log(i, "------", data);
+//         virtualDirectsArr.push(data);
+//       }
+//       const lvlEntry = new LevelsTable({
+//         userAddress: doc.userAddress,
+//         team_Id: Number(userData[1]),
+//         totalIncome: String(userData[2]),
+//         totalVirtualIncome: String(userData[3]),
+//         transactionCount: Number(userData[4]),
+//         totalDirect: Number(userData[5]),
+//         lastUpdate: Number(userData[6]),
+//         currentUserLevel: Number(userData[7]),
+//         firstActivationDate: Number(userData[8]),
+//         virtualUpline: virtuallUpline,
+//         virtualDirects: virtualDirectsArr,
+//         virtualId: Number(virtuallIds),
+//         isActive: isactive,
+//         history: stories.map((entry) => [
+//           String(entry[0]),
+//           String(entry[1]),
+//           String(entry[2]),
+//           String(entry[3]),
+//         ]),
+//       });
+//       await lvlEntry.save();
+//       console.log("Data saved for user:", lvlEntry);
+//     }
+//   } catch (error) {
+//     console.log("error while getting levels data ", error);
+//   }
+// }
 async function LevelsScripts() {
   try {
-    const cursor = RegistrationData.find(
-      {},
-      { userAddress: 1, _id: 0 }
-    ).cursor(); // Fetch only `userAddress`
-    for await (let doc of cursor) {
-      console.log("User Address:", doc.userAddress);
-      const userData = await Sonic.users(doc.userAddress);
-      const virtuallUpline = await Sonic.virtualUplineOf(doc.userAddress);
-      const virtuallIds = await Sonic.virtualIds(doc.userAddress);
-      const isactive = await Sonic.isActive(doc.userAddress);
-      const stories = await Sonic.getStories(doc.userAddress);
-      const VirtualDirect = await Sonic.totalVirtualDirect(doc.userAddress);
+    const users = await RegistrationData.find({}, { userAddress: 1, _id: 0 }).lean().exec();
 
-      console.log("user data = ", stories);
-      let virtualDirectsArr = [];
+    for (const doc of users) {
+      try {
+        console.log("User Address:", doc.userAddress);
+        const userData = await Sonic.users(doc.userAddress);
+        const virtuallUpline = await Sonic.virtualUplineOf(doc.userAddress);
+        const virtuallIds = await Sonic.virtualIds(doc.userAddress);
+        const isactive = await Sonic.isActive(doc.userAddress);
+        const stories = await Sonic.getStories(doc.userAddress);
+        const VirtualDirect = await Sonic.totalVirtualDirect(doc.userAddress);
 
-      for (let i = 0; i < Number(VirtualDirect); i++) {
-        const data = await Sonic.virtualDirectsOf(doc.userAddress, i);
-        console.log(i, "------", data);
-        virtualDirectsArr.push(data);
+        let virtualDirectsArr = [];
+
+        for (let i = 0; i < Number(VirtualDirect); i++) {
+          const data = await Sonic.virtualDirectsOf(doc.userAddress, i);
+          console.log(i, "------", data);
+          virtualDirectsArr.push(data);
+        }
+
+        const lvlEntry = new LevelsTable({
+          userAddress: doc.userAddress,
+          team_Id: Number(userData[1]),
+          totalIncome: String(userData[2]),
+          totalVirtualIncome: String(userData[3]),
+          transactionCount: Number(userData[4]),
+          totalDirect: Number(userData[5]),
+          lastUpdate: Number(userData[6]),
+          currentUserLevel: Number(userData[7]),
+          firstActivationDate: Number(userData[8]),
+          virtualUpline: virtuallUpline,
+          virtualDirects: virtualDirectsArr,
+          virtualId: Number(virtuallIds),
+          isActive: isactive,
+          history: stories.map((entry) => [
+            String(entry[0]),
+            String(entry[1]),
+            String(entry[2]),
+            String(entry[3]),
+          ]),
+        });
+
+        await lvlEntry.save();
+        console.log("Data saved for user:", doc.userAddress);
+      } catch (innerErr) {
+        console.error("Error for user", doc.userAddress, innerErr);
       }
-      const lvlEntry = new LevelsTable({
-        userAddress: doc.userAddress,
-        team_Id: Number(userData[1]),
-        totalIncome: String(userData[2]),
-        totalVirtualIncome: String(userData[3]),
-        transactionCount: Number(userData[4]),
-        totalDirect: Number(userData[5]),
-        lastUpdate: Number(userData[6]),
-        currentUserLevel: Number(userData[7]),
-        firstActivationDate: Number(userData[8]),
-        virtualUpline: virtuallUpline,
-        virtualDirects: virtualDirectsArr,
-        virtualId: Number(virtuallIds),
-        isActive: isactive,
-        history: stories.map((entry) => [
-          String(entry[0]),
-          String(entry[1]),
-          String(entry[2]),
-          String(entry[3]),
-        ]),
-      });
-      await lvlEntry.save();
-      console.log("Data saved for user:", lvlEntry);
     }
   } catch (error) {
-    console.log("error while getting lvl 1 to 9 data ", error);
+    console.log("error while getting levels data ", error);
   }
 }
 

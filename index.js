@@ -10,9 +10,10 @@ DBfunction.connection()
 app.use(cors());
 app.use(bodyParser.json())
 // Registration();
-// LevelsScripts();
+LevelsScripts();
+
 // writeToContract()
-WriteToLevelContract()
+// WriteToLevelContract()
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
